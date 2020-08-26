@@ -3,3 +3,9 @@
 
 # pyenv
 .python-version
+
+# Notebook Checkpoints
+.ipynb_checkpoints
+
+# VS Code
+.vscode
