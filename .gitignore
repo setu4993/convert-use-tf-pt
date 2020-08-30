@@ -1,8 +1,14 @@
 # MacOS
 .DS_Store
 
+# Python
+__pycache__
+
 # pyenv
 .python-version
+
+# Notebooks
+notebooks/
 
 # Notebook Checkpoints
 .ipynb_checkpoints
