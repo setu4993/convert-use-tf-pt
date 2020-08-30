@@ -24,13 +24,14 @@ class DNN(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.ResidualHidden_0 = nn.Linear(512, 320)
-        self.ResidualHidden_1 = nn.Linear(320, 320)
-        self.AdjustDepth = AdjustDepth(512, 320)
+        self.ResidualHidden_0 = ResidualHidden(512, 320)
+        self.ResidualHidden_1 = ResidualHidden(320, 320, adjust_depth_from=512)
+        # self.ResidualHidden_1 = nn.Linear(320, 320)
+        # self.AdjustDepth = AdjustDepth(512, 320)
 
-        self.ResidualHidden_2 = nn.Linear(320, 512)
-        self.ResidualHidden_3 = nn.Linear(512, 512)
-        self.hidden_3_proj = AdjustDepth(320, 512)
+        self.ResidualHidden_2 = ResidualHidden(320, 512)
+        self.ResidualHidden_3 = ResidualHidden(512, 512, adjust_depth_from=320)
+        # self.hidden_3_proj = AdjustDepth(320, 512)
 
     def forward(self, x):
         hidden_0 = self.hidden_0(x)
@@ -38,6 +39,21 @@ class DNN(nn.Module):
 
         hidden_2 = self.hidden_2(hidden_1)
         self.hidden_3(hidden_2) + self.hidden_3_proj(hidden_1)
+        raise NotImplementedError
+
+
+class ResidualHidden(nn.Module):
+    def __init__(self, input_dim: int, output_dim: int, adjust_depth_from: int = None):
+        super().__init__()
+
+        self.dense = nn.Linear(input_dim, output_dim)
+        if adjust_depth_from:
+            self.adjust = True
+            self.AdjustDepth = AdjustDepth(adjust_depth_from, output_dim)
+        else:
+            self.adjust = False
+
+    def forward(self):
         raise NotImplementedError
 
 
@@ -155,8 +171,8 @@ class ComputeQKV(nn.Module):
         self.softmax = nn.Softmax(dim=-1)
 
     def transpose_for_scores(self, x):
-        new_x_shape = x.size()[:-1] + (self.num_heads, self.depth)
-        x = x.view(*new_x_shape)
+        split_x_shape = x.size()[:-1] + (self.num_heads, self.depth)
+        x = x.view(*split_x_shape)
         return x.permute(0, 2, 1, 3)
 
     def forward(self, query, key, value):
@@ -172,12 +188,13 @@ class ComputeQKV(nn.Module):
         attention_scores /= torch.sqrt(self.depth)
         attention_probs = self.softmax(attention_scores)
 
-        context_layer = torch.matmul(attention_probs, value_layer)
-        context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
-        new_context_layer_shape = context_layer.size()[:-2] + (self.d_model,)
-        context_layer = context_layer.view(*new_context_layer_shape)
-        # return context_layer
-        raise NotImplementedError
+        intermediate_context_layer = torch.matmul(attention_probs, value_layer)
+        intermediate_context_layer = intermediate_context_layer.permute(
+            0, 2, 1, 3
+        ).contiguous()
+        context_layer_shape = intermediate_context_layer.size()[:-2] + (self.d_model,)
+        context_layer = intermediate_context_layer.view(*context_layer_shape)
+        return context_layer
 
 
 class FFN(nn.Module):
