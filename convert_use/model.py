@@ -67,27 +67,12 @@ class AdjustDepth(nn.Module):
         return self.projection(x)
 
 
-class AttentionPooling:
-    def __init__(self):
-        raise NotImplementedError
-
-    def forward(self):
-        raise NotImplementedError
-
-
 class EncoderTransformer(nn.Module):
     def __init__(self):
         super().__init__()
 
         self.Transformer = Transformer()
-
-    def forward(self):
-        raise NotImplementedError
-
-
-class SparseTransformerEncode(nn.Module):
-    def __init__(self):
-        raise NotImplementedError
+        self.hidden_layers = TanhLayerWrapper()
 
     def forward(self):
         raise NotImplementedError
@@ -95,9 +80,27 @@ class SparseTransformerEncode(nn.Module):
 
 class Transformer(nn.Module):
     def __init__(self):
+
+        self.SparseTransformerEncode = TransformerEncoder()
+
+        self.layer_prepostprocess = LayerPrePostProcess()
+
+        self.AttentionPooling = AttentionPooling()
+
+    def forward(self):
+        raise NotImplementedError
+
+
+class TransformerEncoder(nn.Module):
+    def __init__(self):
         super().__init__()
 
         self.Layer_0 = Encoder(512, 8)
+        self.Layer_1 = Encoder(512, 8)
+        self.Layer_2 = Encoder(512, 8)
+        self.Layer_3 = Encoder(512, 8)
+        self.Layer_4 = Encoder(512, 8)
+        self.Layer_5 = Encoder(512, 8)
 
     def forward(self):
         raise NotImplementedError
@@ -209,4 +212,33 @@ class FFN(nn.Module):
         hidden = self.Layer1(x)
         hidden = self.Layer2(hidden)
         # return self.layer_norm(x, hidden)
+        raise NotImplementedError
+
+
+class AttentionPooling(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.AttentionPooling = None
+        self.AttentionLogits = None
+        raise NotImplementedError
+
+    def forward(self):
+        raise NotImplementedError
+
+
+class TanhLayerWrapper(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.tanh_layer_0 = TanhLayer()
+
+    def forward(self):
+        raise NotImplementedError
+
+
+class TanhLayer(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.dense = nn.Tanh()
+
+    def forward(self):
         raise NotImplementedError
